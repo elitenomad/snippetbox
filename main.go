@@ -1,13 +1,15 @@
 package main
 
-import "log"
-import "net/http"
+import (
+	"log"
+	"net/http"
+)
 
 /*
 	Define a handler function which writes a byte slice containing
 	a message as the response body
 */
-func home(w http.ResponseWriter, r *http.Request)  {
+func home(w http.ResponseWriter, r *http.Request) {
 	/*
 		What if "/" must be a strict URL instead of a match all pattern ?
 		We will check for request URL path to not be "/" and then use http notFound
@@ -23,10 +25,10 @@ func home(w http.ResponseWriter, r *http.Request)  {
 }
 
 /*
-	Define a handler function which will show snippet info 
+	Define a handler function which will show snippet info
 	Snippet - Show page
 */
-func showSnippet(w http.ResponseWriter, r *http.Request)  {
+func showSnippet(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Displaying the Snippet info..."))
 }
 
@@ -34,11 +36,34 @@ func showSnippet(w http.ResponseWriter, r *http.Request)  {
 	Define a handler function which creates Snippet
 	Snippet - Create form page
 */
-func createSnippet(w http.ResponseWriter, r *http.Request)  {
+func createSnippet(w http.ResponseWriter, r *http.Request) {
+	/*
+		Use r.Method to figure out if the request is coming from POST or not.
+		http.MethodPost returns a string "POST"
+	*/
+	if r.Method != http.MethodPost {
+		/*
+			If its not POST, set the response header to 405 and return
+			the control with a message (Subsequent code is not executed
+			after return statement.
+		*/
+		w.Header().Set("Allow", http.MethodPost)
+		
+		//w.WriteHeader(405)
+		//w.Write([]byte("Method not allowed"))
+
+		/*
+			Instead of using writeHeader and write we can use http.Error as well
+			to combine both functions
+		 */
+		http.Error(w, "Method not allowed", 405)
+		return
+	}
+
 	w.Write([]byte("Creating a new snippet..."))
 }
 
-func main()  {
+func main() {
 	/*
 		Use the http.NewServeMux() function to initialize a new serveMux, then
 		Lets register the home handler for the "/" URL pattern
