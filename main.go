@@ -1,8 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 )
 
 /*
@@ -29,7 +31,17 @@ func home(w http.ResponseWriter, r *http.Request) {
 	Snippet - Show page
 */
 func showSnippet(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Displaying the Snippet info..."))
+	/*
+		Extrac the id value from the query string. If there is a error
+		or id value is < 1 we return a NotFound error on http module
+	 */
+	id, err := strconv.Atoi(r.URL.Query().Get("id"))
+	if err != nil || id < 1 {
+		http.NotFound(w, r)
+		return
+	}
+
+	fmt.Fprintf(w, "Display a specific snippet with ID %d...", id)
 }
 
 /*
@@ -48,7 +60,7 @@ func createSnippet(w http.ResponseWriter, r *http.Request) {
 			after return statement.
 		*/
 		w.Header().Set("Allow", http.MethodPost)
-		
+
 		//w.WriteHeader(405)
 		//w.Write([]byte("Method not allowed"))
 
