@@ -16,6 +16,17 @@ func main() {
 	mux.HandleFunc("/snippet/create", createSnippet)
 
 	/*
+		Create a fileServer which serves the static files from ./ui/static directory
+	 */
+	fileServer := http.FileServer(http.Dir("./ui/static"))
+
+	/*
+		Use mux.Handle to add fileServer as a handle function when the URL
+		has /static/ in it (sub tree paths)
+	 */
+	mux.Handle("/static/", http.StripPrefix("/static", fileServer))
+
+	/*
 		Use the http.listenAndServe() function to start a new web server, We pass in two
 		paramerters [ Port and mux itself ]
 	*/
