@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"html/template"
 	"log"
 	"net/http"
 	"strconv"
@@ -23,7 +24,25 @@ func home(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte("Hello i am creating a SnippetBox..."))
+	/*
+		Use the template.ParseFiles
+	 */
+	ts, err := template.ParseFiles("./ui/html/home.page.tmpl")
+	if err != nil {
+		log.Println(err.Error())
+		http.Error(w, "Internal Server Error", 500)
+		return
+	}
+
+	// We then use the Execute() method on the template set to write the template
+	// content as the response body. The last parameter to Execute() represents any
+	// dynamic data that we want to pass in, which for now we'll leave as nil.
+	err = ts.Execute(w, nil)
+	if err != nil {
+		log.Println(err.Error())
+		http.Error(w, "Internal Server Error", 500)
+		return
+	}
 }
 
 /*
@@ -34,7 +53,7 @@ func showSnippet(w http.ResponseWriter, r *http.Request) {
 	/*
 		Extrac the id value from the query string. If there is a error
 		or id value is < 1 we return a NotFound error on http module
-	 */
+	*/
 	id, err := strconv.Atoi(r.URL.Query().Get("id"))
 	if err != nil || id < 1 {
 		http.NotFound(w, r)
@@ -67,29 +86,10 @@ func createSnippet(w http.ResponseWriter, r *http.Request) {
 		/*
 			Instead of using writeHeader and write we can use http.Error as well
 			to combine both functions
-		 */
+		*/
 		http.Error(w, "Method not allowed", 405)
 		return
 	}
 
 	w.Write([]byte("Creating a new snippet..."))
-}
-
-func main() {
-	/*
-		Use the http.NewServeMux() function to initialize a new serveMux, then
-		Lets register the home handler for the "/" URL pattern
-	*/
-	mux := http.NewServeMux()
-	mux.HandleFunc("/", home)
-	mux.HandleFunc("/snippet", showSnippet)
-	mux.HandleFunc("/snippet/create", createSnippet)
-
-	/*
-		Use the http.listenAndServe() function to start a new web server, We pass in two
-		paramerters [ Port and mux itself ]
-	*/
-	log.Println("Listening on the port 4000...")
-	err := http.ListenAndServe(":4000", mux)
-	log.Fatal(err)
 }
