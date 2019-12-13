@@ -1,11 +1,30 @@
 package main
 
 import (
+	"flag"
 	"log"
 	"net/http"
 )
 
+type Config struct {
+	Addr string
+	StaticDir string
+}
+
 func main() {
+	/*
+		Define a new flag with a name addr which take a string of format ":{PORT_NUMBER}"
+		and add some text to help explaning what the command-line flag does
+	 */
+	config := new(Config)
+	flag.StringVar(&config.Addr, "addr", ":4000", "Port number on which SnippetBox webserver runs")
+	flag.StringVar(&config.StaticDir,  "static-dir", "./ui/static", "Static files directory")
+
+	/*
+		We need to use flag.Parse to parse the command Line flag
+	 */
+	flag.Parse()
+
 	/*
 		Use the http.NewServeMux() function to initialize a new serveMux, then
 		Lets register the home handler for the "/" URL pattern
@@ -18,7 +37,7 @@ func main() {
 	/*
 		Create a fileServer which serves the static files from ./ui/static directory
 	 */
-	fileServer := http.FileServer(http.Dir("./ui/static"))
+	fileServer := http.FileServer(http.Dir(config.StaticDir))
 
 	/*
 		Use mux.Handle to add fileServer as a handle function when the URL
@@ -30,7 +49,7 @@ func main() {
 		Use the http.listenAndServe() function to start a new web server, We pass in two
 		paramerters [ Port and mux itself ]
 	*/
-	log.Println("Listening on the port 4000...")
-	err := http.ListenAndServe(":4000", mux)
+	log.Printf("Listening on the port %s...", config.Addr)
+	err := http.ListenAndServe(config.Addr, mux)
 	log.Fatal(err)
 }
