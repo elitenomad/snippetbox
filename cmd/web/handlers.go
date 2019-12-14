@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"html/template"
-	"log"
 	"net/http"
 	"strconv"
 )
@@ -12,7 +11,7 @@ import (
 	Define a handler function which writes a byte slice containing
 	a message as the response body
 */
-func home(w http.ResponseWriter, r *http.Request) {
+func (app *application) home(w http.ResponseWriter, r *http.Request) {
 	/*
 		What if "/" must be a strict URL instead of a match all pattern ?
 		We will check for request URL path to not be "/" and then use http notFound
@@ -39,7 +38,7 @@ func home(w http.ResponseWriter, r *http.Request) {
 
 	ts, err := template.ParseFiles(files...)
 	if err != nil {
-		log.Println(err.Error())
+		app.errorLog.Println(err.Error())
 		http.Error(w, "Internal Server Error", 500)
 		return
 	}
@@ -49,7 +48,7 @@ func home(w http.ResponseWriter, r *http.Request) {
 	// dynamic data that we want to pass in, which for now we'll leave as nil.
 	err = ts.Execute(w, nil)
 	if err != nil {
-		log.Println(err.Error())
+		app.errorLog.Println(err.Error())
 		http.Error(w, "Internal Server Error", 500)
 		return
 	}
@@ -59,7 +58,7 @@ func home(w http.ResponseWriter, r *http.Request) {
 	Define a handler function which will show snippet info
 	Snippet - Show page
 */
-func showSnippet(w http.ResponseWriter, r *http.Request) {
+func (app *application) showSnippet(w http.ResponseWriter, r *http.Request) {
 	/*
 		Extrac the id value from the query string. If there is a error
 		or id value is < 1 we return a NotFound error on http module
@@ -77,7 +76,7 @@ func showSnippet(w http.ResponseWriter, r *http.Request) {
 	Define a handler function which creates Snippet
 	Snippet - Create form page
 */
-func createSnippet(w http.ResponseWriter, r *http.Request) {
+func (app *application) createSnippet(w http.ResponseWriter, r *http.Request) {
 	/*
 		Use r.Method to figure out if the request is coming from POST or not.
 		http.MethodPost returns a string "POST"

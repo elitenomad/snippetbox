@@ -4,11 +4,21 @@ import (
 	"flag"
 	"log"
 	"net/http"
+	"os"
 )
 
 type Config struct {
 	Addr string
 	StaticDir string
+}
+
+/*
+	Define an application struct which holds application wide
+	dependencies.
+ */
+type application struct {
+	errorLog *log.Logger
+	infoLog *log.Logger
 }
 
 func main() {
@@ -26,13 +36,29 @@ func main() {
 	flag.Parse()
 
 	/*
+		Logging
+	 */
+	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
+	errorLog := log.New(os.Stdout, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
+
+	/*
+		Initiailize the application logger
+	 */
+	app := &application{
+		errorLog: errorLog,
+		infoLog: infoLog,
+	}
+
+	/*
 		Use the http.NewServeMux() function to initialize a new serveMux, then
 		Lets register the home handler for the "/" URL pattern
+
+		Swap the route declarations to use the applications struct methods
 	*/
 	mux := http.NewServeMux()
-	mux.HandleFunc("/", home)
-	mux.HandleFunc("/snippet", showSnippet)
-	mux.HandleFunc("/snippet/create", createSnippet)
+	mux.HandleFunc("/", app.home)
+	mux.HandleFunc("/snippet", app.showSnippet)
+	mux.HandleFunc("/snippet/create", app.createSnippet)
 
 	/*
 		Create a fileServer which serves the static files from ./ui/static directory
@@ -45,11 +71,24 @@ func main() {
 	 */
 	mux.Handle("/static/", http.StripPrefix("/static", fileServer))
 
+
+	/*
+		Initialize a new http.Server struct. We set the Addr and Handler fields so
+		that the server uses the same network address and routes as before, and set
+		the ErrorLog field so that the server now uses the custom errorLog logger in
+		the event of any problems.
+	 */
+	srv := &http.Server {
+		Addr: config.Addr,
+		ErrorLog: errorLog,
+		Handler: mux,
+	}
+
 	/*
 		Use the http.listenAndServe() function to start a new web server, We pass in two
 		paramerters [ Port and mux itself ]
 	*/
-	log.Printf("Listening on the port %s...", config.Addr)
-	err := http.ListenAndServe(config.Addr, mux)
-	log.Fatal(err)
+	infoLog.Printf("Listening on the port %s...", config.Addr)
+	err := srv.ListenAndServe()
+	errorLog.Fatal(err)
 }
