@@ -2,6 +2,7 @@ package mysql
 
 import (
 	"database/sql"
+	"errors"
 	"github.com/elitenomad/snippetbox/pkg/models"
 )
 
@@ -39,7 +40,35 @@ func (m *SnippetModel) Insert(title, content, expires string) (int, error)  {
 }
 
 func (m *SnippetModel) Get(id int) (*models.Snippet, error)  {
-	return nil, nil
+	/*
+		Write an sql statement which fetches the data based on arguments
+	 */
+	statement := `SELECT ID, TITLE, CONTENT, CREATED FROM SNIPPETS WHERE EXPIRES > UTC_TIMESTAMP() AND ID = ?`
+
+	/*
+		Use the QUERY ROW Method to execute the statemnt
+	 */
+	row := m.DB.QueryRow(statement, id)
+
+	/*
+		Initialize a pointer to a new Zeroed snippet struct
+	 */
+	s := &models.Snippet{}
+
+	/*
+	 Use row.Scan to copy the values of each field onto pointer
+	 */
+	err := row.Scan(&s.ID, &s.Title, &s.Content, &s.Created)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, models.ErrNoRecord
+		}else {
+			return nil, err
+		}
+	}
+
+	// If everything went OK
+	return s, nil
 }
 
 func (m *SnippetModel) Latest() ([]*models.Snippet, error)  {
