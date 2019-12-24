@@ -72,7 +72,49 @@ func (m *SnippetModel) Get(id int) (*models.Snippet, error)  {
 }
 
 func (m *SnippetModel) Latest() ([]*models.Snippet, error)  {
-	return nil, nil
+	/*
+		Statement
+	 */
+	stmt := `SELECT ID, TITLE, CONTENT, CREATED FROM SNIPPETS WHERE EXPIRES > UTC_TIMESTAMP() ORDER BY CREATED DESC LIMIT 10`
+
+	/*
+		Execute the statment using DB.Query
+	 */
+	rows, err := m.DB.Query(stmt)
+	if err != nil {
+		return  nil, err
+	}
+
+	/*
+		Very important to close the result set
+	 */
+	defer rows.Close()
+
+	/*
+		Initialze array of pointer
+	 */
+	snippets := []*models.Snippet{}
+	
+	/*
+		Loop through the rows and append snippet object to snippets
+	 */
+	for rows.Next() {
+		s := &models.Snippet{}
+
+		err := rows.Scan(&s.ID, &s.Title, &s.Content, &s.Created)
+		if err != nil {
+			return nil, err
+		}
+
+		snippets = append(snippets, s)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+
+	return snippets, nil
 }
 
 

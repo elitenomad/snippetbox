@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/elitenomad/snippetbox/pkg/models"
-	"html/template"
 	"net/http"
 	"strconv"
 )
@@ -28,29 +27,43 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 	/*
 		Initialize the handler template files
 	 */
-	files := []string{
-		"./ui/html/home.page.tmpl",
-		"./ui/html/base.layout.tmpl",
-		"./ui/html/footer.partial.tmpl",
-	}
+	//files := []string{
+	//	"./ui/html/home.page.tmpl",
+	//	"./ui/html/base.layout.tmpl",
+	//	"./ui/html/footer.partial.tmpl",
+	//}
 
 	/*
 		Use the template.ParseFiles
 	 */
 
-	ts, err := template.ParseFiles(files...)
+	//ts, err := template.ParseFiles(files...)
+	//if err != nil {
+	//	app.serverError(w, err)
+	//	return
+	//}
+
+	// We then use the Execute() method on the template set to write the template
+	// content as the response body. The last parameter to Execute() represents any
+	// dynamic data that we want to pass in, which for now we'll leave as nil.
+	//err = ts.Execute(w, nil)
+	//if err != nil {
+	//	app.serverError(w, err)
+	//	return
+	//}
+
+	/*
+		Collect all snippets limited by 10 in Latest method
+	 */
+
+	snippets, err := app.snippets.Latest()
 	if err != nil {
 		app.serverError(w, err)
 		return
 	}
 
-	// We then use the Execute() method on the template set to write the template
-	// content as the response body. The last parameter to Execute() represents any
-	// dynamic data that we want to pass in, which for now we'll leave as nil.
-	err = ts.Execute(w, nil)
-	if err != nil {
-		app.serverError(w, err)
-		return
+	for _, snippet :=  range snippets {
+		fmt.Fprintf(w, "%v \n", snippet)
 	}
 }
 
