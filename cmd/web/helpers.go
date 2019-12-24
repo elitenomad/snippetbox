@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"runtime/debug"
+	"time"
 )
 
 /*
@@ -35,6 +36,16 @@ func (app *application) notFound(w http.ResponseWriter) {
 	app.clientError(w, http.StatusNotFound)
 }
 
+func (app *application) injectDefaultData(data *templateData, r *http.Request) *templateData {
+	if data == nil {
+		data = &templateData{}
+	}
+
+	data.CurrentYear = time.Now().Year()
+
+	return data
+}
+
 func (app *application) render(w http.ResponseWriter, r *http.Request, name string, td *templateData) {
 	// Retrieve the appropriate template set from the cache based on the page name
 	// (like 'home.page.tmpl'). If no entry exists in the cache with the
@@ -51,7 +62,7 @@ func (app *application) render(w http.ResponseWriter, r *http.Request, name stri
 	buf := new(bytes.Buffer)
 
 	// Execute the template set, passing in any dynamic data.
-	err := ts.Execute(buf, td)
+	err := ts.Execute(buf, app.injectDefaultData(td, r))
 	if err != nil {
 		app.serverError(w, err)
 	}
