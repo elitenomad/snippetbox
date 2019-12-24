@@ -43,7 +43,7 @@ func (m *SnippetModel) Get(id int) (*models.Snippet, error)  {
 	/*
 		Write an sql statement which fetches the data based on arguments
 	 */
-	statement := `SELECT ID, TITLE, CONTENT, CREATED FROM SNIPPETS WHERE EXPIRES > UTC_TIMESTAMP() AND ID = ?`
+	statement := `SELECT ID, TITLE, CONTENT, CREATED, EXPIRES FROM SNIPPETS WHERE EXPIRES > UTC_TIMESTAMP() AND ID = ?`
 
 	/*
 		Use the QUERY ROW Method to execute the statemnt
@@ -58,7 +58,7 @@ func (m *SnippetModel) Get(id int) (*models.Snippet, error)  {
 	/*
 	 Use row.Scan to copy the values of each field onto pointer
 	 */
-	err := row.Scan(&s.ID, &s.Title, &s.Content, &s.Created)
+	err := row.Scan(&s.ID, &s.Title, &s.Content, &s.Created, &s.Expires)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, models.ErrNoRecord
