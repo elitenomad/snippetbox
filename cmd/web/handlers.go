@@ -27,7 +27,6 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 	/*
 		Collect all snippets limited by 10 in Latest method
 	*/
-
 	snippets, err := app.snippets.Latest()
 	if err != nil {
 		app.serverError(w, err)

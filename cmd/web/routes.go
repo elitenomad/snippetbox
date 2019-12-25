@@ -1,8 +1,12 @@
 package main
 
 import "net/http"
+import "github.com/justinas/alice"
 
-func (app *application) routes(config Config) *http.ServeMux {
+func (app *application) routes(config Config) http.Handler {
+
+	standardMiddleware := alice.New(app.recoverPanic, app.logRequest, secureHeaders)
+
 	/*
 		Use the http.NewServeMux() function to initialize a new serveMux, then
 		Lets register the home handler for the "/" URL pattern
@@ -25,5 +29,5 @@ func (app *application) routes(config Config) *http.ServeMux {
 	*/
 	mux.Handle("/static/", http.StripPrefix("/static", fileServer))
 
-	return mux
+	return standardMiddleware.Then(mux)
 }
