@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"github.com/elitenomad/snippetbox/pkg/forms"
 	"github.com/elitenomad/snippetbox/pkg/models"
 	"net/http"
 	"strconv"
@@ -65,16 +66,37 @@ func (app *application) showSnippet(w http.ResponseWriter, r *http.Request) {
 */
 func (app *application) createSnippet(w http.ResponseWriter, r *http.Request) {
 	/*
-		Pass the dummy data
+		ParseForm
 	 */
-	title := "Pranava S Balugari"
-	content := "He is hard working bloke who is constantly planning to improve himself"
-	expires := "7"
+	err := r.ParseForm()
+	if err != nil {
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
+
+	/*
+		Fetch the form info
+	 */
+	form := forms.New(r.PostForm)
+	form.Required("title", "content", "expires")
+	form.MaxLength("title", 100)
+	form.PermittedValues("expires", "365", "7", "1")
+
+	/*
+		Initialize errors
+	 */
+
+	if !form.Valid() {
+		app.render(w, r, "create.page.tmpl", &templateData{
+			Form: form,
+		})
+		return
+	}
 
 	/*
 		execute the snippets insert with the data collected
 	 */
-	id, err := app.snippets.Insert(title, content, expires)
+	id, err := app.snippets.Insert(form.Get("title"), form.Get("content"), form.Get("expires"))
 	if err != nil {
 		app.serverError(w, err)
 		return
@@ -83,11 +105,11 @@ func (app *application) createSnippet(w http.ResponseWriter, r *http.Request) {
 	/*
 		Redirect the User to the relavant Snippet page
 	 */
-	http.Redirect(w,r,fmt.Sprintf("/snippet?id=%d", id), http.StatusSeeOther)
+	http.Redirect(w,r,fmt.Sprintf("/snippet/%d", id), http.StatusSeeOther)
 }
 
 
 // Add a new createSnippetForm handler, which for now returns a placeholder response.
 func (app *application) createSnippetForm(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Create a new snippet..."))
+	app.render(w, r, "create.page.tmpl", &templateData{Form: forms.New(nil)})
 }

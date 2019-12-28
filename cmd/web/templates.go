@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/elitenomad/snippetbox/pkg/forms"
 	"github.com/elitenomad/snippetbox/pkg/models"
 	"html/template"
 	"path/filepath"
@@ -11,6 +12,7 @@ type templateData struct {
 	Snippet *models.Snippet
 	Snippets []*models.Snippet
 	CurrentYear int
+	Form *forms.Form
 }
 
 func humanDate(t time.Time) string {
