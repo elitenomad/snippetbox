@@ -117,7 +117,7 @@ func main() {
 		paramerters [ Port and mux itself ]
 	*/
 	infoLog.Printf("Listening on the port %s...", config.Addr)
-	err = srv.ListenAndServe()
+	err = srv.ListenAndServeTLS("./tls/cert.pem", "./tls/key.pem")
 	errorLog.Fatal(err)
 }
 
