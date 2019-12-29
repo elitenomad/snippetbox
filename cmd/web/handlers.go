@@ -103,6 +103,11 @@ func (app *application) createSnippet(w http.ResponseWriter, r *http.Request) {
 	}
 
 	/*
+		Add a flash to sessions string key
+	 */
+	app.session.Put(r, "flash", "Snippet successfully created!")
+
+	/*
 		Redirect the User to the relavant Snippet page
 	 */
 	http.Redirect(w,r,fmt.Sprintf("/snippet/%d", id), http.StatusSeeOther)

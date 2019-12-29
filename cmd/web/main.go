@@ -4,11 +4,13 @@ import (
 	"database/sql"
 	"flag"
 	"github.com/elitenomad/snippetbox/pkg/models/mysql"
+	"github.com/golangcollege/sessions"
 	"html/template"
 	"log"
 	"net/http"
 	"os"
 	_ "github.com/go-sql-driver/mysql"
+	"time"
 )
 
 type Config struct {
@@ -24,6 +26,7 @@ type application struct {
 	errorLog *log.Logger
 	infoLog *log.Logger
 	snippets *mysql.SnippetModel
+	session *sessions.Session
 	templateCache map[string]*template.Template
 }
 
@@ -40,6 +43,11 @@ func main() {
 		DB connection pool
 	*/
 	dsn := flag.String("dsn", "web:nicetry8@/snippetbox?parseTime=true", "My SQL data source name")
+
+	/*
+		Sessions secret
+	 */
+	secret := flag.String("secret", "s6Ndh+pPbnzHbS*+9Pk8qGWhTzbpa@ge", "Secret key")
 
 	/*
 		We need to use flag.Parse to parse the command Line flag
@@ -75,6 +83,11 @@ func main() {
 		errorLog.Fatal(err)
 	}
 
+	/*
+		use sessions.Mew to setup new session manager
+	 */
+	session := sessions.New([]byte(*secret))
+	session.Lifetime = 12 * time.Hour
 
 	/*
 		Initiailize the application logger
@@ -83,6 +96,7 @@ func main() {
 		errorLog: errorLog,
 		infoLog: infoLog,
 		snippets: &mysql.SnippetModel{DB: db},
+		session: session,
 		templateCache: templateCache,
 	}
 

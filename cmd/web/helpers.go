@@ -42,6 +42,10 @@ func (app *application) injectDefaultData(data *templateData, r *http.Request) *
 	}
 
 	data.CurrentYear = time.Now().Year()
+	/*
+		Show the flash if exists
+	*/
+	data.Flash = app.session.PopString(r, "flash")
 
 	return data
 }
