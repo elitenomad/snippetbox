@@ -118,3 +118,58 @@ func (app *application) createSnippet(w http.ResponseWriter, r *http.Request) {
 func (app *application) createSnippetForm(w http.ResponseWriter, r *http.Request) {
 	app.render(w, r, "create.page.tmpl", &templateData{Form: forms.New(nil)})
 }
+
+/*
+	Add a Signup user form Handler
+ */
+func (app *application) signupUserForm(w http.ResponseWriter, r *http.Request) {
+	app.render(w, r, "signup.page.tmpl", &templateData{Form: forms.New(nil)})
+}
+
+/*
+	Add a Signup form submission handler function
+ */
+func (app *application) signupUser(w http.ResponseWriter, r *http.Request)  {
+	err := r.ParseForm()
+	if err != nil {
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
+
+	form := forms.New(r.PostForm)
+	form.Required("name", "email", "password")
+	form.MaxLength("name", 200)
+	form.MaxLength("email",200)
+	form.MatchesPattern("email", forms.RxEmail)
+	form.MinLength("password", 10)
+
+	if !form.Valid() {	
+		app.render(w, r,"signup.page.tmpl", &templateData{
+			Form: form,
+		})
+
+		return
+	}
+
+}
+
+/*
+	Add a Login user form
+ */
+func (app *application) loginUserForm(w http.ResponseWriter, r *http.Request)  {
+	app.render(w, r, "login.page.tmpl", &templateData{Form: forms.New(nil)})
+}
+
+/*
+	Authenticate the user
+ */
+func (app *application) loginUser(w http.ResponseWriter, r *http.Request)  {
+	fmt.Fprintln(w, "Authenticating the user")
+}
+
+/*
+	Destroying the session
+*/
+func (app *application) logoutUser(w http.ResponseWriter, r *http.Request)  {
+	fmt.Fprintln(w, "Destroying the user session")
+}

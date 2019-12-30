@@ -22,6 +22,14 @@ func (app *application) routes(config Config) http.Handler {
 	mux.Get("/snippet/create", dynamicMiddleware.ThenFunc(http.HandlerFunc(app.createSnippetForm)))
 	mux.Post("/snippet/create", dynamicMiddleware.ThenFunc(http.HandlerFunc(app.createSnippet)))
 	mux.Get("/snippet/:id", dynamicMiddleware.ThenFunc(http.HandlerFunc(app.showSnippet)))
+	/*
+		User Sign up,in and out routes
+	 */
+	mux.Get("/users/signup", dynamicMiddleware.ThenFunc(http.HandlerFunc(app.signupUserForm)))
+	mux.Post("/users/signup", dynamicMiddleware.ThenFunc(http.HandlerFunc(app.signupUser)))
+	mux.Get("/users/login", dynamicMiddleware.ThenFunc(http.HandlerFunc(app.loginUserForm)))
+	mux.Post("/users/login", dynamicMiddleware.ThenFunc(http.HandlerFunc(app.loginUser)))
+	mux.Post("/users/logout", dynamicMiddleware.ThenFunc(http.HandlerFunc(app.logoutUser)))
 
 	/*
 		Create a fileServer which serves the static files from ./ui/static directory

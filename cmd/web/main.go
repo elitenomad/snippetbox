@@ -27,6 +27,7 @@ type application struct {
 	errorLog *log.Logger
 	infoLog *log.Logger
 	snippets *mysql.SnippetModel
+	users *mysql.UserModel
 	session *sessions.Session
 	templateCache map[string]*template.Template
 }
@@ -89,6 +90,7 @@ func main() {
 	 */
 	session := sessions.New([]byte(*secret))
 	session.Lifetime = 12 * time.Hour
+	session.Secure = true
 
 	/*
 		Initiailize the application logger
@@ -99,6 +101,7 @@ func main() {
 		snippets: &mysql.SnippetModel{DB: db},
 		session: session,
 		templateCache: templateCache,
+		users: &mysql.UserModel{DB:db},
 	}
 
 	/*
