@@ -10,6 +10,13 @@ import (
 )
 
 /*
+	Create a Ping pong handler
+ */
+func ping(w http.ResponseWriter, r *http.Request)  {
+	w.Write([]byte("Pong"))
+}
+
+/*
 	Define a handler function which writes a byte slice containing
 	a message as the response body
 */
