@@ -19,6 +19,9 @@ type Config struct {
 	StaticDir string
 }
 
+type contextKey string
+const contextKeyIsAuthenticated =  contextKey("isAuthenticated")
+
 /*
 	Define an application struct which holds application wide
 	dependencies.
