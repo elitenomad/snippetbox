@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"github.com/justinas/nosurf"
 	"net/http"
 	"runtime/debug"
 	"time"
@@ -46,6 +47,8 @@ func (app *application) injectDefaultData(data *templateData, r *http.Request) *
 		Show the flash if exists
 	*/
 	data.Flash = app.session.PopString(r, "flash")
+	data.IsAuthenticated = app.isAuthenticated(r)
+	data.CSRFToken = nosurf.Token(r)
 
 	return data
 }
@@ -72,4 +75,11 @@ func (app *application) render(w http.ResponseWriter, r *http.Request, name stri
 	}
 
 	buf.WriteTo(w)
+}
+
+/*
+	Return true if the current request is from authenticated user, otherwise return false.
+ */
+func (app *application) isAuthenticated(r *http.Request) bool {
+	return app.session.Exists(r, "authenticatedUserID")
 }

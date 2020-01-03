@@ -9,7 +9,7 @@ import "github.com/justinas/alice"
 func (app *application) routes(config Config) http.Handler {
 
 	standardMiddleware := alice.New(app.recoverPanic, app.logRequest, secureHeaders)
-	dynamicMiddleware := alice.New(app.session.Enable)
+	dynamicMiddleware := alice.New(app.session.Enable, noSurf)
 
 	/*
 		Use the http.NewServeMux() function to initialize a new serveMux, then
@@ -19,9 +19,9 @@ func (app *application) routes(config Config) http.Handler {
 	*/
 	mux := pat.New()
 	mux.Get("/", dynamicMiddleware.ThenFunc(http.HandlerFunc(app.home)))
-	mux.Get("/snippet/create", dynamicMiddleware.ThenFunc(http.HandlerFunc(app.createSnippetForm)))
-	mux.Post("/snippet/create", dynamicMiddleware.ThenFunc(http.HandlerFunc(app.createSnippet)))
-	mux.Get("/snippet/:id", dynamicMiddleware.ThenFunc(http.HandlerFunc(app.showSnippet)))
+	mux.Get("/snippet/create", dynamicMiddleware.Append(app.requireAuthentication).ThenFunc(http.HandlerFunc(app.createSnippetForm)))
+	mux.Post("/snippet/create", dynamicMiddleware.Append(app.requireAuthentication).ThenFunc(http.HandlerFunc(app.createSnippet)))
+	mux.Get("/snippet/:id", dynamicMiddleware.Append(app.requireAuthentication).ThenFunc(http.HandlerFunc(app.showSnippet)))
 	/*
 		User Sign up,in and out routes
 	 */
@@ -29,7 +29,7 @@ func (app *application) routes(config Config) http.Handler {
 	mux.Post("/users/signup", dynamicMiddleware.ThenFunc(http.HandlerFunc(app.signupUser)))
 	mux.Get("/users/login", dynamicMiddleware.ThenFunc(http.HandlerFunc(app.loginUserForm)))
 	mux.Post("/users/login", dynamicMiddleware.ThenFunc(http.HandlerFunc(app.loginUser)))
-	mux.Post("/users/logout", dynamicMiddleware.ThenFunc(http.HandlerFunc(app.logoutUser)))
+	mux.Post("/users/logout", dynamicMiddleware.Append(app.requireAuthentication).ThenFunc(http.HandlerFunc(app.logoutUser)))
 
 	/*
 		Create a fileServer which serves the static files from ./ui/static directory

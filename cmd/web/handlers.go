@@ -143,7 +143,7 @@ func (app *application) signupUser(w http.ResponseWriter, r *http.Request)  {
 	form.MatchesPattern("email", forms.RxEmail)
 	form.MinLength("password", 10)
 
-	if !form.Valid() {	
+	if !form.Valid() {
 		app.render(w, r,"signup.page.tmpl", &templateData{
 			Form: form,
 		})
@@ -151,6 +151,27 @@ func (app *application) signupUser(w http.ResponseWriter, r *http.Request)  {
 		return
 	}
 
+	/*
+		Try and create a new User entry with the Service file we created
+	 */
+	err = app.users.Insert(form.Get("name"), form.Get("email"), form.Get("password"))
+	if err != nil {
+		if errors.Is(err, models.ErrDuplicateEmail)	{
+			form.Errors.Add("email", "Email already exists")
+			app.render(w, r, "signup.page.tmpl", &templateData{Form: form})
+		}else {
+			app.serverError(w, err)
+		}
+
+		return
+	}
+
+	app.session.Put(r, "flash", "Your sign up was successful. Please log in.")
+
+	/*
+		Redirect to Login page after everything is successfuls
+	 */
+	http.Redirect(w, r, "/users/login", http.StatusSeeOther)
 }
 
 /*
@@ -164,12 +185,65 @@ func (app *application) loginUserForm(w http.ResponseWriter, r *http.Request)  {
 	Authenticate the user
  */
 func (app *application) loginUser(w http.ResponseWriter, r *http.Request)  {
-	fmt.Fprintln(w, "Authenticating the user")
+	err := r.ParseForm()
+	if err != nil {
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
+
+	form := forms.New(r.PostForm)
+	form.MatchesPattern("email", forms.RxEmail)
+
+	if !form.Valid() {
+		app.render(w, r,"login.page.tmpl", &templateData{
+			Form: form,
+		})
+
+		return
+	}
+
+	/*
+		Fetch the user details
+	*/
+	id, err := app.users.Authenticate(form.Get("email"), form.Get("password"))
+	if err != nil {
+		if errors.Is(err, models.ErrInvalidCredentials)	{
+			form.Errors.Add("email", "Invalid Password for given email")
+			app.render(w, r, "login.page.tmpl", &templateData{Form: form})
+		}else {
+			app.serverError(w, err)
+		}
+		return
+	}
+
+	/*
+		If authentication successful add a flash message
+	 */
+	app.session.Put(r, "flash", "Logged in successfully")
+	app.session.Put(r, "authenticatedUserID", id)
+
+	/*
+		Redirect to home or snippets index page page
+	*/
+	http.Redirect(w, r, "/snippet/create", http.StatusSeeOther)
 }
 
 /*
 	Destroying the session
 */
 func (app *application) logoutUser(w http.ResponseWriter, r *http.Request)  {
-	fmt.Fprintln(w, "Destroying the user session")
+	/*
+		Remove the authenticatedUserID flash from the session
+	 */
+	app.session.Remove(r, "authenticatedUserID")
+
+	/*
+		Add a flash message to the session destroy
+	 */
+	app.session.Put(r, "flash", "You've been logged out successfully!")
+
+	/*
+		Redirect to home or snippets home page
+	*/
+	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
